@@ -43,13 +43,15 @@ export default function App() {
   const [hasAnimated, setHasAnimated] = useState(false)
   const [animProgress, setAnimProgress] = useState(0) // 0 to 1
 
-  // Staggered slide-in visibility states for the 3 showcase blocks
+  // Staggered slide-in visibility states for the 3 showcase blocks and CTA section
   const block1Ref = useRef(null)
   const block2Ref = useRef(null)
   const block3Ref = useRef(null)
+  const ctaSectionRef = useRef(null)
   const [block1InView, setBlock1InView] = useState(false)
   const [block2InView, setBlock2InView] = useState(false)
   const [block3InView, setBlock3InView] = useState(false)
+  const [ctaInView, setCtaInView] = useState(false)
 
   // Keep html class in sync with dark mode
   useEffect(() => {
@@ -115,10 +117,10 @@ export default function App() {
     }
   }, [hasAnimated])
 
-  // IntersectionObserver for staggered slide-in of text then image in Showcase Blocks
+  // IntersectionObserver for staggered slide-in of text then image in Showcase Blocks & CTA
   useEffect(() => {
     const observerOptions = {
-      threshold: 0.2,
+      threshold: 0.15,
       rootMargin: '0px 0px -40px 0px'
     }
 
@@ -128,6 +130,7 @@ export default function App() {
           if (entry.target === block1Ref.current) setBlock1InView(true)
           if (entry.target === block2Ref.current) setBlock2InView(true)
           if (entry.target === block3Ref.current) setBlock3InView(true)
+          if (entry.target === ctaSectionRef.current) setCtaInView(true)
         }
       })
     }, observerOptions)
@@ -135,6 +138,7 @@ export default function App() {
     if (block1Ref.current) observer.observe(block1Ref.current)
     if (block2Ref.current) observer.observe(block2Ref.current)
     if (block3Ref.current) observer.observe(block3Ref.current)
+    if (ctaSectionRef.current) observer.observe(ctaSectionRef.current)
 
     return () => observer.disconnect()
   }, [])
@@ -154,6 +158,65 @@ export default function App() {
   const totalEntries = Math.floor(animProgress * 223)
   const growthPercent = (animProgress * 18.4).toFixed(1)
   const gaugeFill = Math.floor(animProgress * 85)
+
+  // Store download coming soon modal & APK email state
+  const [storeModal, setStoreModal] = useState({ open: false, store: '' })
+  const [emailValue, setEmailValue] = useState('')
+  const [apkSubmitted, setApkSubmitted] = useState(false)
+  const [showBackToTop, setShowBackToTop] = useState(false)
+  const [inputHighlighted, setInputHighlighted] = useState(false)
+  const emailInputRef = useRef(null)
+
+  const handleProceedToApk = () => {
+    // Dismiss the modal first if open
+    setStoreModal({ open: false, store: '' })
+
+    setTimeout(() => {
+      const section = document.getElementById('apk-download')
+      const input = emailInputRef.current
+      if (!section) return
+
+      const isTouch = typeof window !== 'undefined' && (
+        'ontouchstart' in window ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+        window.innerWidth < 768
+      )
+
+      // Calculate exact scroll target with header offset (navbar is 80px high)
+      const rect = section.getBoundingClientRect()
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+      const headerOffset = window.innerWidth < 768 ? 84 : 96
+      const targetY = Math.max(0, rect.top + scrollTop - headerOffset)
+
+      window.scrollTo({
+        top: targetY,
+        behavior: 'smooth'
+      })
+
+      // Trigger vibrant highlight pulse on the email input
+      setInputHighlighted(true)
+      setTimeout(() => {
+        setInputHighlighted(false)
+      }, 2500)
+
+      // On non-touch desktop browsers, focus the input field with preventScroll: true once smooth scroll finishes.
+      // On mobile/touch devices, we deliberately do NOT auto-focus to prevent virtual keyboard pop-up,
+      // which shrinks the viewport and violently overrides smooth scroll coordinates past the input field.
+      if (!isTouch && input) {
+        setTimeout(() => {
+          input.focus({ preventScroll: true })
+        }, 700)
+      }
+    }, 60)
+  }
+
+  useEffect(() => {
+    const handleScrollBackTop = () => {
+      setShowBackToTop(window.scrollY > 350)
+    }
+    window.addEventListener('scroll', handleScrollBackTop, { passive: true })
+    return () => window.removeEventListener('scroll', handleScrollBackTop)
+  }, [])
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 ${
@@ -215,8 +278,12 @@ export default function App() {
 
             {/* "Try it out" Primary Action Button */}
             <a
-              href="#download"
-              className="px-5 sm:px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-[#0D1B2A] bg-[#E2F163] hover:bg-[#d8e855] shadow-md shadow-[#E2F163]/25 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+              href="#apk-download"
+              onClick={(e) => {
+                e.preventDefault()
+                handleProceedToApk()
+              }}
+              className="px-5 sm:px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-[#0D1B2A] bg-[#E2F163] hover:bg-[#d8e855] shadow-md shadow-[#E2F163]/25 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
             >
               Try it out
             </a>
@@ -270,9 +337,10 @@ export default function App() {
               {/* App Store & Google Play Badges */}
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {/* Apple App Store */}
-                <a
-                  href="#app-store"
-                  className="group flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-900 border border-neutral-800 shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                <button
+                  type="button"
+                  onClick={() => setStoreModal({ open: true, store: 'Apple App Store' })}
+                  className="group flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-900 border border-neutral-800 shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-left"
                 >
                   <svg className="w-6 h-6 sm:w-7 sm:h-7 fill-current" viewBox="0 0 24 24">
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.42c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.71-.93 2.73 1.01.08 2.01-.5 2.63-1.23z" />
@@ -285,12 +353,13 @@ export default function App() {
                       App Store
                     </span>
                   </div>
-                </a>
+                </button>
 
                 {/* Google Play */}
-                <a
-                  href="#google-play"
-                  className="group flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-900 border border-neutral-800 shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                <button
+                  type="button"
+                  onClick={() => setStoreModal({ open: true, store: 'Google Play Store' })}
+                  className="group flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-900 border border-neutral-800 shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-left"
                 >
                   <svg className="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M3.6 1.8L13.7 12 3.6 22.2c-.4-.4-.6-1-.6-1.7V3.5c0-.7.2-1.3.6-1.7z" />
@@ -306,7 +375,7 @@ export default function App() {
                       Google Play
                     </span>
                   </div>
-                </a>
+                </button>
               </div>
 
               {/* Supported Tech Pills */}
@@ -835,73 +904,107 @@ export default function App() {
       </section>
 
       {/* ──────────────── Pre-qualification & Financial Future CTA Section ──────────────── */}
-      <section className={`py-12 sm:py-20 relative overflow-hidden transition-colors duration-300 ${
-        isDarkMode ? 'bg-[#070F18]' : 'bg-[#F4F7EB]'
-      }`}>
+      <section
+        ref={ctaSectionRef}
+        className={`py-12 sm:py-20 relative overflow-hidden transition-colors duration-300 ${
+          isDarkMode ? 'bg-[#070F18]' : 'bg-[#F4F7EB]'
+        }`}
+      >
+        {/* Creative Ambient Underglow that blooms on scroll */}
+        <div className={`pointer-events-none absolute inset-x-1/4 top-1/2 -translate-y-1/2 h-[360px] rounded-full bg-[#E2F163]/12 filter blur-[95px] transition-all duration-1000 -z-10 ${
+          ctaInView ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+        }`} />
+
         <div className="max-w-[1250px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`rounded-[36px] sm:rounded-[44px] overflow-hidden border transition-all duration-300 ${
+          {/* Main Enclosed Card with smooth scale-in & reveal on scroll */}
+          <div className={`rounded-[36px] sm:rounded-[44px] overflow-hidden border transition-all duration-1000 ease-out ${
+            ctaInView
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 translate-y-12 scale-[0.96]'
+          } ${
             isDarkMode
               ? 'bg-[#0D1B2A] border-white/10 shadow-[0_22px_55px_rgba(0,0,0,0.45),0_12px_32px_rgba(226,241,99,0.08)]'
               : 'bg-white border-[#0D1B2A]/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)]'
           }`}>
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[520px] lg:min-h-[580px] items-stretch">
               
-              {/* Left Column: Full-bleed Lifestyle Image with Spendr Card Overlay */}
+              {/* Left Column: Full-bleed Lifestyle Image with Animated Spendr Card Overlay */}
               <div className="lg:col-span-6 relative min-h-[340px] lg:min-h-full overflow-hidden group">
                 <img
                   src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=900&q=70&fm=webp"
                   alt="Managing financial future with Spendr"
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 w-full h-full object-cover object-center transform transition-transform duration-700 group-hover:scale-105"
+                  className={`absolute inset-0 w-full h-full object-cover object-center transform transition-transform duration-1000 ease-out ${
+                    ctaInView ? 'scale-100 group-hover:scale-105' : 'scale-110'
+                  }`}
                 />
                 {/* Soft overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
 
-                {/* Floating Mini Spendr Debit Card Accent */}
-                <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 z-10">
-                  <div className="w-48 sm:w-56 h-28 sm:h-32 rounded-2xl bg-gradient-to-br from-[#0D1B2A] to-[#1E2D3D] p-3.5 sm:p-4 shadow-2xl border border-white/20 flex flex-col justify-between text-white backdrop-blur-md transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-md bg-[#E2F163] p-1 flex items-center justify-center">
-                          <img src={logoImg} alt="Spendr" className="w-full h-full object-contain" />
-                        </div>
-                        <span className="text-xs font-black tracking-wider text-white">spendr</span>
-                      </div>
-                      {/* Chip / Contactless icon */}
-                      <div className="flex -space-x-1.5 opacity-90">
-                        <div className="w-3.5 h-3.5 rounded-full bg-red-500/90" />
-                        <div className="w-3.5 h-3.5 rounded-full bg-amber-400/90" />
-                      </div>
-                    </div>
+                {/* Floating Mini Spendr Debit Card Accent - Slides up, rotates into place, and shimmers */}
+                <div className={`absolute bottom-6 left-6 sm:bottom-8 sm:left-8 z-10 transition-all duration-1000 delay-300 ease-out ${
+                  ctaInView
+                    ? 'opacity-100 translate-y-0 scale-100'
+                    : 'opacity-0 translate-y-14 scale-90'
+                }`}>
+                  <div className="animate-float-slow">
+                    <div className="relative overflow-hidden w-48 sm:w-56 h-28 sm:h-32 rounded-2xl bg-gradient-to-br from-[#0D1B2A] to-[#1E2D3D] p-3.5 sm:p-4 shadow-2xl border border-white/20 flex flex-col justify-between text-white backdrop-blur-md transform -rotate-3 hover:rotate-0 hover:scale-105 transition-all duration-300 group/card">
+                      
+                      {/* Sweeping Metallic Light Shimmer Reflection */}
+                      <div
+                        className={`absolute -inset-full w-[250%] h-[250%] bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-25 pointer-events-none transition-transform duration-1000 delay-700 ${
+                          ctaInView ? 'translate-x-[150%]' : '-translate-x-[150%]'
+                        }`}
+                      />
 
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <div className="text-[9px] text-slate-400 font-mono tracking-widest">•••• 8824</div>
-                        <div className="text-[10px] font-bold text-slate-200 uppercase tracking-wider mt-0.5">Farouq N.</div>
+                      <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-md bg-[#E2F163] p-1 flex items-center justify-center">
+                            <img src={logoImg} alt="Spendr" className="w-full h-full object-contain" />
+                          </div>
+                          <span className="text-xs font-black tracking-wider text-white">spendr</span>
+                        </div>
+                        {/* Chip / Contactless icon */}
+                        <div className="flex -space-x-1.5 opacity-90">
+                          <div className="w-3.5 h-3.5 rounded-full bg-red-500/90" />
+                          <div className="w-3.5 h-3.5 rounded-full bg-amber-400/90" />
+                        </div>
                       </div>
-                      <div className="text-[10px] font-mono text-[#E2F163] font-extrabold">09/29</div>
+
+                      <div className="flex items-end justify-between relative z-10">
+                        <div>
+                          <div className="text-[9px] text-slate-400 font-mono tracking-widest">•••• 8824</div>
+                          <div className="text-[10px] font-bold text-slate-200 uppercase tracking-wider mt-0.5">Farouq N.</div>
+                        </div>
+                        <div className="text-[10px] font-mono text-[#E2F163] font-extrabold">09/29</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column: CTA Content Aligned with Spendr */}
+              {/* Right Column: CTA Content with Staggered Entrance on Scroll */}
               <div className={`lg:col-span-6 flex flex-col justify-center items-start p-8 sm:p-12 lg:p-16 z-10 ${
                 isDarkMode ? 'bg-[#0D1B2A]' : 'bg-white'
               }`}>
                 
                 {/* Brand Aligned Pill Tag */}
-                <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-6 border ${
+                <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-6 border transition-all duration-700 delay-150 ease-out ${
+                  ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'
+                } ${
                   isDarkMode
                     ? 'bg-[#1E2D3D]/80 border-[#E2F163]/30 text-[#E2F163]'
                     : 'bg-[#EDF2E4] border-[#0D1B2A]/15 text-[#0D1B2A]'
                 }`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E2F163] animate-pulse" />
                   <span>Smart Financial Growth ®</span>
                 </div>
 
                 {/* Headline matching app typography & Josefin Sans font */}
-                <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-medium sm:font-semibold tracking-tight leading-[1.12] mb-5 ${
+                <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-medium sm:font-semibold tracking-tight leading-[1.12] mb-5 transition-all duration-700 delay-300 ease-out ${
+                  ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                } ${
                   isDarkMode ? 'text-white' : 'text-[#0D1B2A]'
                 }`}>
                   Take control of your<br />
@@ -911,22 +1014,37 @@ export default function App() {
                 </h2>
 
                 {/* Description Copy */}
-                <p className={`text-sm sm:text-base leading-relaxed max-w-md mb-7 font-light ${
+                <p className={`text-sm sm:text-base leading-relaxed max-w-md mb-7 font-light transition-all duration-700 delay-450 ease-out ${
+                  ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                } ${
                   isDarkMode ? 'text-slate-300' : 'text-[#0D1B2A]/75'
                 }`}>
                   Join thousands of mindful spenders taking control of their money. Track every expense, automate bank statements with AI, and grow your savings effortlessly.
                 </p>
 
                 {/* Brand Action CTA Button */}
-                <a
-                  href="#download"
-                  className="px-7 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-bold text-[#0D1B2A] bg-[#E2F163] hover:bg-[#d8e855] shadow-md shadow-[#E2F163]/25 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  Start Tracking Free
-                </a>
+                <div className={`transition-all duration-700 delay-600 ease-out ${
+                  ctaInView ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
+                }`}>
+                  <a
+                    href="#apk-download"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleProceedToApk()
+                    }}
+                    className="inline-flex items-center gap-2 px-7 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-bold text-[#0D1B2A] bg-[#E2F163] hover:bg-[#d8e855] shadow-md shadow-[#E2F163]/25 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer group/btn"
+                  >
+                    <span>Start Tracking Free</span>
+                    <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </a>
+                </div>
 
                 {/* Trust Subtext Aligned with Spendr App */}
-                <div className="flex items-center gap-2 mt-6 text-xs sm:text-sm font-light text-[#0D1B2A]/60 dark:text-slate-400">
+                <div className={`flex items-center gap-2 mt-6 text-xs sm:text-sm font-light text-[#0D1B2A]/60 dark:text-slate-400 transition-all duration-700 delay-700 ease-out ${
+                  ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
+                }`}>
                   <svg className="w-4 h-4 text-[#738c00] dark:text-[#E2F163] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
@@ -951,64 +1069,97 @@ export default function App() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Top Newsletter / App Link Pre-Footer Banner */}
-          <div className={`p-8 sm:p-12 rounded-3xl border mb-20 transition-all duration-300 ${
-            isDarkMode
-              ? 'bg-[#0D1B2A] border-[#E2F163]/25 shadow-[0_0_50px_rgba(226,241,99,0.05)]'
-              : 'bg-white border-[#EDF2E4] shadow-sm'
-          }`}>
+          {/* Top Newsletter / Direct APK Download Pre-Footer Banner */}
+          <div
+            id="apk-download"
+            className={`scroll-mt-24 sm:scroll-mt-28 p-8 sm:p-12 rounded-3xl border mb-20 transition-all duration-300 ${
+              isDarkMode
+                ? 'bg-[#0D1B2A] border-[#E2F163]/25 shadow-[0_0_50px_rgba(226,241,99,0.05)]'
+                : 'bg-white border-[#EDF2E4] shadow-sm'
+            }`}
+          >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-7">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 bg-[#E2F163] text-[#0D1B2A]">
-                  <span>Stay In The Loop</span>
+                  <span>Direct APK Download</span>
                 </div>
                 <h3 className={`text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 ${
                   isDarkMode ? 'text-white' : 'text-[#0D1B2A]'
                 }`}>
-                  Ready to transform your money habits?
+                  Get the Spendr APK sent to your inbox
                 </h3>
                 <p className={`text-sm sm:text-base ${isDarkMode ? 'text-slate-400' : 'text-[#0D1B2A]/70'}`}>
-                  Get the download link sent directly to your phone or email, plus bi-weekly personal finance tips.
+                  While we finalize Apple App Store & Google Play review, enter your email below to receive the direct Android APK download link immediately.
                 </p>
               </div>
 
               <div className="lg:col-span-5">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    alert('Download link sent! Check your inbox or phone.')
-                  }}
-                  className="flex flex-col sm:flex-row gap-2.5"
-                >
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter email or phone number"
-                    className={`flex-1 px-4 py-3 rounded-full text-sm font-medium border outline-none transition-all ${
-                      isDarkMode
-                        ? 'bg-[#1E2D3D] border-[#1E2D3D] text-white placeholder-slate-400 focus:border-[#E2F163]'
-                        : 'bg-[#F9FBF2] border-[#EDF2E4] text-[#0D1B2A] placeholder-slate-400 focus:border-[#0D1B2A]'
-                    }`}
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 rounded-full text-sm font-bold bg-[#E2F163] text-[#0D1B2A] hover:bg-[#d8e855] transition-all shadow-md shadow-[#E2F163]/20 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer hover:scale-105"
+                {apkSubmitted ? (
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    <div className="flex items-center gap-2 font-bold text-sm mb-1 text-emerald-300">
+                      <span>✓</span> Download Link Sent!
+                    </div>
+                    <p className="text-xs leading-relaxed text-slate-300">
+                      We&apos;ve sent the Spendr APK link to <strong className="text-white">{emailValue}</strong>. Check your inbox to install!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setApkSubmitted(false)
+                        setEmailValue('')
+                      }}
+                      className="mt-3 text-xs underline text-[#E2F163] hover:opacity-80 cursor-pointer"
+                    >
+                      Send to a different email
+                    </button>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (emailValue.trim()) {
+                        setApkSubmitted(true)
+                      }
+                    }}
+                    className="flex flex-col sm:flex-row gap-2.5"
                   >
-                    <span>Send Link</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </button>
-                </form>
+                    <input
+                      ref={emailInputRef}
+                      type="email"
+                      required
+                      value={emailValue}
+                      onChange={(e) => setEmailValue(e.target.value)}
+                      placeholder="Enter your email address"
+                      className={`flex-1 px-4 py-3 rounded-full text-sm font-medium border outline-none transition-all duration-300 ${
+                        inputHighlighted
+                          ? 'ring-4 ring-[#E2F163] shadow-lg shadow-[#E2F163]/40 border-[#E2F163] scale-[1.01]'
+                          : ''
+                      } ${
+                        isDarkMode
+                          ? 'bg-[#1E2D3D] border-[#1E2D3D] text-white placeholder-slate-400 focus:border-[#E2F163]'
+                          : 'bg-[#F9FBF2] border-[#EDF2E4] text-[#0D1B2A] placeholder-slate-400 focus:border-[#0D1B2A]'
+                      }`}
+                    />
+                    <button
+                      type="submit"
+                      className="px-6 py-3 rounded-full text-sm font-bold bg-[#E2F163] text-[#0D1B2A] hover:bg-[#d8e855] transition-all shadow-md shadow-[#E2F163]/20 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95"
+                    >
+                      <span>Send Link</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </button>
+                  </form>
+                )}
                 <div className="flex items-center gap-4 mt-3 text-[11px] text-slate-400 font-medium">
                   <span className="flex items-center gap-1">
-                    <span className="text-[#65A30D] dark:text-[#E2F163]">✓</span> Free forever plan
+                    <span className="text-[#65A30D] dark:text-[#E2F163]">✓</span> Instant download
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="text-[#65A30D] dark:text-[#E2F163]">✓</span> No spam guarantee
+                    <span className="text-[#65A30D] dark:text-[#E2F163]">✓</span> Free forever
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="text-[#65A30D] dark:text-[#E2F163]">✓</span> iOS & Android
+                    <span className="text-[#65A30D] dark:text-[#E2F163]">✓</span> 100% secure APK
                   </span>
                 </div>
               </div>
@@ -1039,37 +1190,6 @@ export default function App() {
               <p className={`text-sm leading-relaxed mb-6 max-w-sm ${isDarkMode ? 'text-slate-400' : 'text-[#0D1B2A]/70'}`}>
                 A smart personal finance tracker built with Flutter. Track daily spending, extract bank statements with AI, and grow your net worth with bank-level privacy.
               </p>
-
-              {/* Live Status Badge */}
-              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6 border ${
-                isDarkMode ? 'bg-[#1E2D3D]/60 border-[#1E2D3D] text-slate-300' : 'bg-white border-[#EDF2E4] text-[#0D1B2A]'
-              }`}>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>All systems operational • Cloud sync active</span>
-              </div>
-
-              {/* Social Media Links */}
-              <div className="flex items-center gap-3">
-                {[
-                  { name: 'X / Twitter', icon: '𝕏', href: '#' },
-                  { name: 'GitHub', icon: '⌨️', href: '#' },
-                  { name: 'LinkedIn', icon: 'in', href: '#' },
-                  { name: 'Discord', icon: '💬', href: '#' }
-                ].map((s) => (
-                  <a
-                    key={s.name}
-                    href={s.href}
-                    title={s.name}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
-                      isDarkMode
-                        ? 'bg-[#1E2D3D] text-slate-300 hover:bg-[#E2F163] hover:text-[#0D1B2A]'
-                        : 'bg-white border border-[#EDF2E4] text-[#0D1B2A] hover:bg-[#E2F163] hover:border-[#E2F163]'
-                    }`}
-                  >
-                    {s.icon}
-                  </a>
-                ))}
-              </div>
             </div>
 
             {/* Column 2: Product (2 Cols) */}
@@ -1149,47 +1269,31 @@ export default function App() {
             </p>
           </div>
 
-          {/* Bottom Bar: Copyright, Theme Pill, Back to Top */}
+          {/* Bottom Bar: Copyright & Navigation */}
           <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium">
             <div>
               © 2026 Spendr Technologies Inc. All rights reserved.
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* Theme quick switch */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                  isDarkMode
-                    ? 'bg-[#1E2D3D] border-[#1E2D3D] text-[#E2F163] hover:bg-[#243547]'
-                    : 'bg-white border-[#EDF2E4] text-[#0D1B2A] hover:bg-[#EDF2E4]'
-                }`}
+            <div className="flex items-center gap-6 text-xs text-slate-500">
+              <a href="#features" className="hover:underline">Features</a>
+              <a href="#showcase" className="hover:underline">Security</a>
+              <a
+                href="#apk-download"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleProceedToApk()
+                }}
+                className="hover:underline cursor-pointer"
               >
-                {isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode'}
-              </button>
-
-              {/* Back to top smooth button */}
-              <button
-                type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                  isDarkMode
-                    ? 'bg-[#1E2D3D] border-[#1E2D3D] text-white hover:bg-[#243547]'
-                    : 'bg-white border-[#EDF2E4] text-[#0D1B2A] hover:bg-[#EDF2E4]'
-                }`}
-              >
-                <span>Back to top</span>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
-                </svg>
-              </button>
+                Direct Download
+              </a>
             </div>
           </div>
 
-          {/* Giant Artistic Background Watermark */}
-          <div className="w-full overflow-hidden flex justify-center pointer-events-none select-none -mb-12 mt-6">
-            <span className={`text-[17vw] font-black tracking-tighter leading-none transition-colors duration-300 ${
+          {/* Giant Artistic Background Watermark: full-width on mobile */}
+          <div className="w-full overflow-hidden flex justify-center pointer-events-none select-none -mb-8 sm:-mb-12 mt-6">
+            <span className={`text-[23.5vw] sm:text-[19vw] md:text-[18vw] lg:text-[17vw] font-black tracking-tighter leading-none transition-colors duration-300 text-center w-full block ${
               isDarkMode ? 'text-white/[0.03]' : 'text-[#0D1B2A]/[0.04]'
             }`}>
               SPENDR
@@ -1198,6 +1302,108 @@ export default function App() {
 
         </div>
       </footer>
+
+      {/* ──────────────── Floating Action Button: Circular Back to Top ──────────────── */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Back to top"
+          className={`fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 cursor-pointer border ${
+            isDarkMode
+              ? 'bg-[#E2F163] text-[#0D1B2A] border-[#E2F163] shadow-[#E2F163]/30'
+              : 'bg-[#0D1B2A] text-[#E2F163] border-[#0D1B2A] shadow-slate-900/30'
+          }`}
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      )}
+
+      {/* ──────────────── Coming Soon Store Modal ──────────────── */}
+      {storeModal.open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setStoreModal({ open: false, store: '' })}
+        >
+          <div
+            className={`relative w-full max-w-md rounded-3xl p-6 sm:p-8 border shadow-2xl transition-all transform scale-100 ${
+              isDarkMode
+                ? 'bg-[#0D1B2A] border-white/10 text-white shadow-black/80'
+                : 'bg-white border-[#0D1B2A]/10 text-[#0D1B2A] shadow-2xl'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setStoreModal({ open: false, store: '' })}
+              aria-label="Close modal"
+              className={`absolute top-5 right-5 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                isDarkMode
+                  ? 'bg-[#1E2D3D] text-slate-300 hover:text-white'
+                  : 'bg-[#EDF2E4] text-[#0D1B2A] hover:bg-[#dfe8d4]'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Modal Icon / Badge */}
+            <div className="w-12 h-12 rounded-2xl bg-[#E2F163] p-2.5 flex items-center justify-center mb-5 shadow-lg shadow-[#E2F163]/25">
+              <img src={logoImg} alt="Spendr" className="w-full h-full object-contain" />
+            </div>
+
+            {/* Modal Tag */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2.5 bg-[#E2F163]/15 text-[#738c00] dark:text-[#E2F163] border border-[#E2F163]/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E2F163] animate-ping" />
+              <span>Coming Soon</span>
+            </div>
+
+            <h3 className={`text-xl sm:text-2xl font-bold tracking-tight mb-2.5 leading-snug ${
+              isDarkMode ? 'text-white' : 'text-[#0D1B2A]'
+            }`}>
+              Coming to {storeModal.store} soon!
+            </h3>
+
+            <p className={`text-sm leading-relaxed mb-6 font-light ${
+              isDarkMode ? 'text-slate-300' : 'text-[#0D1B2A]/75'
+            }`}>
+              We are currently in the final stages of store approvals. In the meantime, you can get early access right now — enter your email to receive the direct download link for the Android APK!
+            </p>
+
+            {/* Modal Actions */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={handleProceedToApk}
+                className="flex-1 px-5 py-3 rounded-full text-sm font-bold bg-[#E2F163] text-[#0D1B2A] hover:bg-[#d8e855] transition-all shadow-md shadow-[#E2F163]/25 hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <span>Get APK Download Link</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStoreModal({ open: false, store: '' })}
+                className={`px-4 py-3 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-[#1E2D3D] text-slate-300 hover:text-white'
+                    : 'bg-[#EDF2E4] text-[#0D1B2A] hover:bg-[#dfe8d4]'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
