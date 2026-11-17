@@ -1,20 +1,38 @@
 import { useState, useEffect, useRef } from 'react'
-import logoImg from './assets/spendr/logo.png'
-import phoneDashLight from './assets/spendr/phone-dashboard-light.png'
-import phoneDashDark from './assets/spendr/phone-dashboard-dark.png'
-import phoneTxLight from './assets/spendr/phone-transactions-light.png'
-import phoneTxDark from './assets/spendr/phone-transactions-dark.png'
+import logoImg from './assets/spendr/logo.webp'
+import phoneDashLight from './assets/spendr/phone-dashboard-light.webp'
+import phoneDashDark from './assets/spendr/phone-dashboard-dark.webp'
+import phoneTxLight from './assets/spendr/phone-transactions-light.webp'
+import phoneTxDark from './assets/spendr/phone-transactions-dark.webp'
 
 // 3D Slanted Mockup assets for Opal-style showcase section
-import phoneAddLight from './assets/spendr/phone-add-light.png'
-import phoneAddDark from './assets/spendr/phone-add-dark.png'
-import phoneSettingsLight from './assets/spendr/phone-settings-light.png'
-import phoneSettingsDark from './assets/spendr/phone-settings-dark.png'
-import phoneSlantTxLight from './assets/spendr/phone-slant-tx-light.png'
-import phoneSlantTxDark from './assets/spendr/phone-slant-tx-dark.png'
+import phoneAddLight from './assets/spendr/phone-add-light.webp'
+import phoneAddDark from './assets/spendr/phone-add-dark.webp'
+import phoneSettingsLight from './assets/spendr/phone-settings-light.webp'
+import phoneSettingsDark from './assets/spendr/phone-settings-dark.webp'
+import phoneSlantTxLight from './assets/spendr/phone-slant-tx-light.webp'
+import phoneSlantTxDark from './assets/spendr/phone-slant-tx-dark.webp'
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Preload alternate-theme & key mockups in browser cache for instant rendering
+  useEffect(() => {
+    const imagesToPreload = [
+      phoneDashLight,
+      phoneDashDark,
+      phoneTxLight,
+      phoneTxDark,
+      phoneAddLight,
+      phoneAddDark,
+      phoneSlantTxLight,
+      phoneSlantTxDark
+    ]
+    imagesToPreload.forEach((src) => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [])
 
   // Scroll zoom animation state for the feature grid
   const featureSectionRef = useRef(null)
@@ -321,12 +339,14 @@ export default function App() {
 
               <div className="relative flex items-center justify-center max-w-full">
                 
-                {/* Phone 1 (Left / Front): Dashboard Mockup */}
+                {/* Phone 1 (Left / Front): Dashboard Mockup (High Fetch Priority for Instant LCP) */}
                 <div className="relative z-10 w-[235px] sm:w-[275px] md:w-[300px] transition-all duration-300 transform -mr-11 sm:-mr-15 lg:-mr-18 hover:scale-[1.02]">
                   <img
                     key={`dash-${isDarkMode}`}
                     src={currentDashImg}
                     alt="Spendr Dashboard App Mockup"
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_25px_35px_rgba(13,27,42,0.22)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.55)] transition-opacity duration-300"
                   />
                 </div>
@@ -337,6 +357,8 @@ export default function App() {
                     key={`tx-${isDarkMode}`}
                     src={currentTxImg}
                     alt="Spendr Transactions App Mockup"
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_30px_40px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_30px_50px_rgba(0,0,0,0.6)] transition-opacity duration-300"
                   />
                 </div>
@@ -399,8 +421,10 @@ export default function App() {
                 <div className="absolute -inset-2 rounded-[52px] bg-gradient-to-b from-[#E2F163]/18 via-[#E2F163]/10 to-[#E2F163]/5 blur-2xl opacity-70 pointer-events-none -z-10" />
 
                 <img
-                  src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1000&q=80"
+                  src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=70&fm=webp"
                   alt="Know Exactly Where Every Penny Goes"
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.78] pointer-events-none"
                 />
                 {/* Soft, Reduced Black Gradient Overlay */}
@@ -422,8 +446,10 @@ export default function App() {
                 <div className="absolute -inset-2 rounded-[52px] bg-gradient-to-b from-[#E2F163]/18 via-[#E2F163]/10 to-[#E2F163]/5 blur-2xl opacity-70 pointer-events-none -z-10" />
 
                 <img
-                  src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80"
+                  src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=70&fm=webp"
                   alt="AI Statement Upload"
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.78] pointer-events-none"
                 />
                 {/* Soft, Reduced Black Gradient Overlay */}
@@ -475,8 +501,10 @@ export default function App() {
                 <div className="absolute -inset-2 rounded-[52px] bg-gradient-to-b from-[#E2F163]/18 via-[#E2F163]/10 to-[#E2F163]/5 blur-2xl opacity-70 pointer-events-none -z-10" />
 
                 <img
-                  src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80"
+                  src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=70&fm=webp"
                   alt="Multi-Currency & Custom Categories"
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.78] pointer-events-none"
                 />
                 {/* Soft, Reduced Black Gradient Overlay */}
@@ -539,8 +567,10 @@ export default function App() {
                 <div className="absolute -inset-2 rounded-[52px] bg-gradient-to-b from-[#E2F163]/18 via-[#E2F163]/10 to-[#E2F163]/5 blur-2xl opacity-70 pointer-events-none -z-10" />
 
                 <img
-                  src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=1000&q=80"
+                  src="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=800&q=70&fm=webp"
                   alt="Track Your Savings Progress"
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.78] pointer-events-none"
                 />
                 {/* Soft, Reduced Black Gradient Overlay */}
@@ -658,6 +688,8 @@ export default function App() {
                     key={`add-${isDarkMode}`}
                     src={currentAddImg}
                     alt="Spendr Add Transaction Screen"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                   {/* Subtle bottom half gradient overlay */}
@@ -689,6 +721,8 @@ export default function App() {
                     key={`tx-${isDarkMode}`}
                     src={currentSlantTxImg}
                     alt="Spendr Transactions Activity Screen"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                   {/* Subtle bottom half gradient overlay */}
@@ -782,6 +816,8 @@ export default function App() {
                     key={`settings-${isDarkMode}`}
                     src={currentSettingsImg}
                     alt="Spendr Settings & Security Screen"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                   {/* Subtle bottom half gradient overlay */}
@@ -813,8 +849,10 @@ export default function App() {
               {/* Left Column: Full-bleed Lifestyle Image with Spendr Card Overlay */}
               <div className="lg:col-span-6 relative min-h-[340px] lg:min-h-full overflow-hidden group">
                 <img
-                  src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1400&q=80"
+                  src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=900&q=70&fm=webp"
                   alt="Managing financial future with Spendr"
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover object-center transform transition-transform duration-700 group-hover:scale-105"
                 />
                 {/* Soft overlay gradient */}
