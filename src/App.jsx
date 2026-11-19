@@ -895,22 +895,22 @@ export default function App() {
                   ? 'bg-[#1E2D3D]/80 border-[#E2F163]/30 text-[#E2F163]'
                   : 'bg-[#EDF2E4] border-[#0D1B2A]/15 text-[#0D1B2A]'
               }`}>
-                <span>Activity Stream ®</span>
+                <span>Focus Rules & Security ®</span>
               </div>
 
               {/* Bold Title */}
               <h2 className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6 ${
                 isDarkMode ? 'text-white' : 'text-[#0D1B2A]'
               }`}>
-                Your cashflow in<br />
-                one live feed
+                Set your rules &<br />
+                secure your vault
               </h2>
 
               {/* Description Copy */}
               <p className={`text-base sm:text-lg leading-relaxed max-w-xl ${
                 isDarkMode ? 'text-slate-300' : 'text-[#0D1B2A]/80'
               }`}>
-                Review every salary deposit, travel expense, and inter-bank transfer in a unified stream. Clear running balances and categorized entries keep your finances transparent.
+                Take control of your day and privacy. Lock the app with biometric Face ID and Touch ID, schedule customized daily reminders, and switch between world currencies anytime.
               </p>
 
             </div>
@@ -927,9 +927,9 @@ export default function App() {
                 {/* Bottom Half Fade Mask */}
                 <div className="relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)]">
                   <img
-                    key={`tx-${isDarkMode}`}
-                    src={currentSlantTxImg}
-                    alt="Spendr Transactions Activity Screen"
+                    key={`settings-${isDarkMode}`}
+                    src={currentSettingsImg}
+                    alt="Spendr Settings & Security Screen"
                     loading="lazy"
                     decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
@@ -960,9 +960,9 @@ export default function App() {
                 {/* Bottom Half Fade Mask */}
                 <div className="relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)]">
                   <img
-                    key={`settings-${isDarkMode}`}
-                    src={currentSettingsImg}
-                    alt="Spendr Settings & Security Screen"
+                    key={`tx-${isDarkMode}`}
+                    src={currentSlantTxImg}
+                    alt="Spendr Transactions Activity Screen"
                     loading="lazy"
                     decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
@@ -987,22 +987,22 @@ export default function App() {
                   ? 'bg-[#1E2D3D]/80 border-[#E2F163]/30 text-[#E2F163]'
                   : 'bg-[#EDF2E4] border-[#0D1B2A]/15 text-[#0D1B2A]'
               }`}>
-                <span>Focus Rules & Security ®</span>
+                <span>Activity Stream ®</span>
               </div>
 
               {/* Bold Title */}
               <h2 className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6 ${
                 isDarkMode ? 'text-white' : 'text-[#0D1B2A]'
               }`}>
-                Set your rules &<br />
-                secure your vault
+                Your cashflow in<br />
+                one live feed
               </h2>
 
               {/* Description Copy */}
               <p className={`text-base sm:text-lg leading-relaxed max-w-xl ${
                 isDarkMode ? 'text-slate-300' : 'text-[#0D1B2A]/80'
               }`}>
-                Take control of your day and privacy. Lock the app with biometric Face ID and Touch ID, schedule customized daily reminders, and switch between world currencies anytime.
+                Review every salary deposit, travel expense, and inter-bank transfer in a unified stream. Clear running balances and categorized entries keep your finances transparent.
               </p>
 
             </div>
