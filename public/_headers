@@ -10,6 +10,12 @@
 /icons.svg
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 
+# Direct APK download routing and mime-type
+/downloads/*
+  Content-Type: application/vnd.android.package-archive
+  Content-Disposition: attachment; filename="spendr.apk"
+  Cache-Control: public, max-age=86400
+
 # HTML never cached so updates deploy immediately
 /*
   Cache-Control: public, max-age=0, must-revalidate

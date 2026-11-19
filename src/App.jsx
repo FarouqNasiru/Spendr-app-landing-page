@@ -8,6 +8,8 @@ import phoneTxDark from './assets/spendr/phone-transactions-dark.webp'
 // 3D Slanted Mockup assets for Opal-style showcase section
 import phoneAddLight from './assets/spendr/phone-add-light.webp'
 import phoneAddDark from './assets/spendr/phone-add-dark.webp'
+import phoneNotificationLight from './assets/spendr/phone-notification-light.webp'
+import phoneNotificationDark from './assets/spendr/phone-notification-dark.webp'
 import phoneSettingsLight from './assets/spendr/phone-settings-light.webp'
 import phoneSettingsDark from './assets/spendr/phone-settings-dark.webp'
 import phoneSlantTxLight from './assets/spendr/phone-slant-tx-light.webp'
@@ -25,6 +27,8 @@ export default function App() {
       phoneTxDark,
       phoneAddLight,
       phoneAddDark,
+      phoneNotificationLight,
+      phoneNotificationDark,
       phoneSlantTxLight,
       phoneSlantTxDark
     ]
@@ -43,14 +47,16 @@ export default function App() {
   const [hasAnimated, setHasAnimated] = useState(false)
   const [animProgress, setAnimProgress] = useState(0) // 0 to 1
 
-  // Staggered slide-in visibility states for the 3 showcase blocks and CTA section
+  // Staggered slide-in visibility states for the 4 showcase blocks and CTA section
   const block1Ref = useRef(null)
   const block2Ref = useRef(null)
   const block3Ref = useRef(null)
+  const block4Ref = useRef(null)
   const ctaSectionRef = useRef(null)
   const [block1InView, setBlock1InView] = useState(false)
   const [block2InView, setBlock2InView] = useState(false)
   const [block3InView, setBlock3InView] = useState(false)
+  const [block4InView, setBlock4InView] = useState(false)
   const [ctaInView, setCtaInView] = useState(false)
 
   // Keep html class in sync with dark mode
@@ -130,6 +136,7 @@ export default function App() {
           if (entry.target === block1Ref.current) setBlock1InView(true)
           if (entry.target === block2Ref.current) setBlock2InView(true)
           if (entry.target === block3Ref.current) setBlock3InView(true)
+          if (entry.target === block4Ref.current) setBlock4InView(true)
           if (entry.target === ctaSectionRef.current) setCtaInView(true)
         }
       })
@@ -138,6 +145,7 @@ export default function App() {
     if (block1Ref.current) observer.observe(block1Ref.current)
     if (block2Ref.current) observer.observe(block2Ref.current)
     if (block3Ref.current) observer.observe(block3Ref.current)
+    if (block4Ref.current) observer.observe(block4Ref.current)
     if (ctaSectionRef.current) observer.observe(ctaSectionRef.current)
 
     return () => observer.disconnect()
@@ -151,6 +159,7 @@ export default function App() {
 
   // Opal-style Showcase 3D Slanted Phone Images
   const currentAddImg = isDarkMode ? phoneAddDark : phoneAddLight
+  const currentNotificationImg = isDarkMode ? phoneNotificationDark : phoneNotificationLight
   const currentSlantTxImg = isDarkMode ? phoneSlantTxDark : phoneSlantTxLight
   const currentSettingsImg = isDarkMode ? phoneSettingsDark : phoneSettingsLight
 
@@ -162,6 +171,9 @@ export default function App() {
   // Store download coming soon modal & APK email state
   const [storeModal, setStoreModal] = useState({ open: false, store: '' })
   const [emailValue, setEmailValue] = useState('')
+  const [honeypot, setHoneypot] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [apkSubmitted, setApkSubmitted] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [inputHighlighted, setInputHighlighted] = useState(false)
@@ -208,6 +220,39 @@ export default function App() {
         }, 700)
       }
     }, 60)
+  }
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault()
+    if (!emailValue.trim() || isSubmitting) return
+
+    setIsSubmitting(true)
+    setSubmitError('')
+
+    try {
+      const res = await fetch('/api/send-apk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailValue.trim(),
+          honeypot: honeypot.trim(),
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to dispatch download link. Please check your email and try again.')
+      }
+
+      setApkSubmitted(true)
+    } catch (err) {
+      setSubmitError(err.message || 'Unable to connect to service. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   useEffect(() => {
@@ -694,7 +739,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* ──────────────── NEW SECTION: Opal-Inspired 3-Screen Staggered Slide-In Showcase ──────────────── */}
+      {/* ──────────────── NEW SECTION: Opal-Inspired 4-Screen Staggered Slide-In Showcase ──────────────── */}
       <section id="showcase" className={`py-20 sm:py-28 relative overflow-hidden transition-colors duration-300 ${
         isDarkMode ? 'bg-[#070F18]' : 'bg-[#F4F7EB]'
       }`}>
@@ -772,10 +817,10 @@ export default function App() {
 
           </div>
 
-          {/* ──── Block 2: Text Left (Slides In 1st on Right), Image Left (Slides In 2nd beside it) ──── */}
+          {/* ──── Block 2: Phone Left (Slides In 2nd with delay-300), Text Right (Slides In 1st) ──── */}
           <div ref={block2Ref} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             
-            {/* Left Phone Mockup (Transactions Image on Left, Slides In 2nd with delay-300) */}
+            {/* Left Phone Mockup (Notification Mockup on Left, Slides In 2nd with delay-300) */}
             <div className={`lg:col-span-6 order-2 lg:order-1 relative flex items-center justify-center lg:justify-start transition-all duration-700 delay-300 ease-out ${
               block2InView ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'
             }`}>
@@ -787,9 +832,9 @@ export default function App() {
                 {/* Bottom Half Fade Mask */}
                 <div className="relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)]">
                   <img
-                    key={`tx-${isDarkMode}`}
-                    src={currentSlantTxImg}
-                    alt="Spendr Transactions Activity Screen"
+                    key={`notification-${isDarkMode}`}
+                    src={currentNotificationImg}
+                    alt="Spendr Bank Notification Alert Screen"
                     loading="lazy"
                     decoding="async"
                     className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
@@ -806,6 +851,42 @@ export default function App() {
             {/* Right Content (Text slides into place 1st) */}
             <div className={`lg:col-span-6 order-1 lg:order-2 flex flex-col items-start text-left z-10 transition-all duration-700 ease-out ${
               block2InView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            }`}>
+              
+              {/* Opal-style Pill Tag */}
+              <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-6 border ${
+                isDarkMode
+                  ? 'bg-[#1E2D3D]/80 border-[#E2F163]/30 text-[#E2F163]'
+                  : 'bg-[#EDF2E4] border-[#0D1B2A]/15 text-[#0D1B2A]'
+              }`}>
+                <span>Smart Bank Nudges ®</span>
+              </div>
+
+              {/* Bold Title */}
+              <h2 className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] mb-6 ${
+                isDarkMode ? 'text-white' : 'text-[#0D1B2A]'
+              }`}>
+                Bank app opened?<br />
+                Prompted in real-time
+              </h2>
+
+              {/* Description Copy */}
+              <p className={`text-base sm:text-lg leading-relaxed max-w-xl ${
+                isDarkMode ? 'text-slate-300' : 'text-[#0D1B2A]/80'
+              }`}>
+                Spendr monitors banking app launches and transaction alerts to instantly send a contextual prompt: <em>&ldquo;Did you just spend with your bank? Tap to log it now!&rdquo;</em> Never let an expense slip through the cracks again.
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* ──── Block 3: Text Left (Slides In 1st), Phone Right (Slides In 2nd) ──── */}
+          <div ref={block3Ref} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            
+            {/* Left Content (Text slides into place 1st) */}
+            <div className={`lg:col-span-6 flex flex-col items-start text-left z-10 transition-all duration-700 ease-out ${
+              block3InView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             }`}>
               
               {/* Opal-style Pill Tag */}
@@ -834,14 +915,70 @@ export default function App() {
 
             </div>
 
+            {/* Right Phone Mockup (Image slides into place 2nd, staggered delay) */}
+            <div className={`lg:col-span-6 relative flex items-center justify-center lg:justify-end transition-all duration-700 delay-300 ease-out ${
+              block3InView ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'
+            }`}>
+              
+              {/* Soft, gentle backlight */}
+              <div className="absolute w-[320px] sm:w-[420px] h-[320px] sm:h-[420px] rounded-full filter blur-3xl opacity-20 pointer-events-none bg-[#E2F163]/10" />
+
+              <div className="relative group w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[500px]">
+                {/* Bottom Half Fade Mask */}
+                <div className="relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)]">
+                  <img
+                    key={`tx-${isDarkMode}`}
+                    src={currentSlantTxImg}
+                    alt="Spendr Transactions Activity Screen"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                  {/* Subtle bottom half gradient overlay */}
+                  <div className={`absolute inset-x-0 bottom-0 h-1/2 pointer-events-none ${
+                    isDarkMode ? 'bg-gradient-to-t from-[#070F18] via-[#070F18]/85 to-transparent' : 'bg-gradient-to-t from-[#F4F7EB] via-[#F4F7EB]/85 to-transparent'
+                  }`} />
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
-          {/* ──── Block 3: Text Left (Slides In 1st), Phone Right (Slides In 2nd) ──── */}
-          <div ref={block3Ref} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* ──── Block 4: Phone Left (Slides In 2nd with delay-300), Text Right (Slides In 1st) ──── */}
+          <div ref={block4Ref} className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
             
-            {/* Left Content (Text slides into place 1st) */}
-            <div className={`lg:col-span-6 flex flex-col items-start text-left z-10 transition-all duration-700 ease-out ${
-              block3InView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+            {/* Left Phone Mockup */}
+            <div className={`lg:col-span-6 order-2 lg:order-1 relative flex items-center justify-center lg:justify-start transition-all duration-700 delay-300 ease-out ${
+              block4InView ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'
+            }`}>
+              
+              {/* Soft, gentle backlight */}
+              <div className="absolute w-[320px] sm:w-[420px] h-[320px] sm:h-[420px] rounded-full filter blur-3xl opacity-20 pointer-events-none bg-[#E2F163]/10" />
+
+              <div className="relative group w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[500px]">
+                {/* Bottom Half Fade Mask */}
+                <div className="relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)]">
+                  <img
+                    key={`settings-${isDarkMode}`}
+                    src={currentSettingsImg}
+                    alt="Spendr Settings & Security Screen"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                  {/* Subtle bottom half gradient overlay */}
+                  <div className={`absolute inset-x-0 bottom-0 h-1/2 pointer-events-none ${
+                    isDarkMode ? 'bg-gradient-to-t from-[#070F18] via-[#070F18]/85 to-transparent' : 'bg-gradient-to-t from-[#F4F7EB] via-[#F4F7EB]/85 to-transparent'
+                  }`} />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Content */}
+            <div className={`lg:col-span-6 order-1 lg:order-2 flex flex-col items-start text-left z-10 transition-all duration-700 ease-out ${
+              block4InView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
             }`}>
               
               {/* Opal-style Pill Tag */}
@@ -867,34 +1004,6 @@ export default function App() {
               }`}>
                 Take control of your day and privacy. Lock the app with biometric Face ID and Touch ID, schedule customized daily reminders, and switch between world currencies anytime.
               </p>
-
-            </div>
-
-            {/* Right Phone Mockup (Image slides into place 2nd, staggered delay) */}
-            <div className={`lg:col-span-6 relative flex items-center justify-center lg:justify-end transition-all duration-700 delay-300 ease-out ${
-              block3InView ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-16 scale-95'
-            }`}>
-              
-              {/* Soft, gentle backlight */}
-              <div className="absolute w-[320px] sm:w-[420px] h-[320px] sm:h-[420px] rounded-full filter blur-3xl opacity-20 pointer-events-none bg-[#E2F163]/10" />
-
-              <div className="relative group w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[500px]">
-                {/* Bottom Half Fade Mask */}
-                <div className="relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,rgba(0,0,0,0.6)_48%,transparent_78%)]">
-                  <img
-                    key={`settings-${isDarkMode}`}
-                    src={currentSettingsImg}
-                    alt="Spendr Settings & Security Screen"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-auto object-contain filter drop-shadow-[0_20px_35px_rgba(13,27,42,0.25)] dark:drop-shadow-[0_25px_45px_rgba(0,0,0,0.7)] transform transition-transform duration-500 group-hover:scale-[1.02]"
-                  />
-                  {/* Subtle bottom half gradient overlay */}
-                  <div className={`absolute inset-x-0 bottom-0 h-1/2 pointer-events-none ${
-                    isDarkMode ? 'bg-gradient-to-t from-[#070F18] via-[#070F18]/85 to-transparent' : 'bg-gradient-to-t from-[#F4F7EB] via-[#F4F7EB]/85 to-transparent'
-                  }`} />
-                </div>
-              </div>
 
             </div>
 
@@ -1107,6 +1216,7 @@ export default function App() {
                       onClick={() => {
                         setApkSubmitted(false)
                         setEmailValue('')
+                        setSubmitError('')
                       }}
                       className="mt-3 text-xs underline text-[#E2F163] hover:opacity-80 cursor-pointer"
                     >
@@ -1115,40 +1225,75 @@ export default function App() {
                   </div>
                 ) : (
                   <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      if (emailValue.trim()) {
-                        setApkSubmitted(true)
-                      }
-                    }}
-                    className="flex flex-col sm:flex-row gap-2.5"
+                    onSubmit={handleEmailSubmit}
+                    className="flex flex-col gap-2.5"
                   >
+                    {/* Invisible Honeypot Field: Catches automated spambots */}
                     <input
-                      ref={emailInputRef}
-                      type="email"
-                      required
-                      value={emailValue}
-                      onChange={(e) => setEmailValue(e.target.value)}
-                      placeholder="Enter your email address"
-                      className={`flex-1 px-4 py-3 rounded-full text-sm font-medium border outline-none transition-all duration-300 ${
-                        inputHighlighted
-                          ? 'ring-4 ring-[#E2F163] shadow-lg shadow-[#E2F163]/40 border-[#E2F163] scale-[1.01]'
-                          : ''
-                      } ${
-                        isDarkMode
-                          ? 'bg-[#1E2D3D] border-[#1E2D3D] text-white placeholder-slate-400 focus:border-[#E2F163]'
-                          : 'bg-[#F9FBF2] border-[#EDF2E4] text-[#0D1B2A] placeholder-slate-400 focus:border-[#0D1B2A]'
-                      }`}
+                      type="text"
+                      name="company_website"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      className="sr-only opacity-0 absolute -z-10 pointer-events-none"
+                      aria-hidden="true"
                     />
-                    <button
-                      type="submit"
-                      className="px-6 py-3 rounded-full text-sm font-bold bg-[#E2F163] text-[#0D1B2A] hover:bg-[#d8e855] transition-all shadow-md shadow-[#E2F163]/20 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95"
-                    >
-                      <span>Send Link</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </button>
+
+                    <div className="flex flex-col sm:flex-row gap-2.5">
+                      <input
+                        ref={emailInputRef}
+                        type="email"
+                        required
+                        disabled={isSubmitting}
+                        value={emailValue}
+                        onChange={(e) => {
+                          setEmailValue(e.target.value)
+                          if (submitError) setSubmitError('')
+                        }}
+                        placeholder="Enter your email address"
+                        className={`flex-1 px-4 py-3 rounded-full text-sm font-medium border outline-none transition-all duration-300 disabled:opacity-60 ${
+                          inputHighlighted
+                            ? 'ring-4 ring-[#E2F163] shadow-lg shadow-[#E2F163]/40 border-[#E2F163] scale-[1.01]'
+                            : ''
+                        } ${
+                          isDarkMode
+                            ? 'bg-[#1E2D3D] border-[#1E2D3D] text-white placeholder-slate-400 focus:border-[#E2F163]'
+                            : 'bg-[#F9FBF2] border-[#EDF2E4] text-[#0D1B2A] placeholder-slate-400 focus:border-[#0D1B2A]'
+                        }`}
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-6 py-3 rounded-full text-sm font-bold bg-[#E2F163] text-[#0D1B2A] hover:bg-[#d8e855] disabled:opacity-75 disabled:cursor-not-allowed transition-all shadow-md shadow-[#E2F163]/20 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin w-4 h-4 text-[#0D1B2A]" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                            </svg>
+                            <span>Sending...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Send Link</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {submitError && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{submitError}</span>
+                      </div>
+                    )}
                   </form>
                 )}
                 <div className="flex items-center gap-4 mt-3 text-[11px] text-slate-400 font-medium">
@@ -1202,6 +1347,7 @@ export default function App() {
                 <li><a href="#showcase" className="hover:underline">AI Statement OCR</a></li>
                 <li><a href="#features" className="hover:underline">Custom Categories</a></li>
                 <li><a href="#showcase" className="hover:underline">Instant Logging</a></li>
+                <li><a href="#showcase" className="hover:underline">Smart Bank Nudges</a></li>
                 <li><a href="#currencies" className="hover:underline">Multi-Currency</a></li>
                 <li><a href="#prequalify" className="hover:underline">Paystack Premium</a></li>
               </ul>
